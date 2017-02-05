@@ -1,0 +1,11 @@
+{
+  "basename": "/basename",
+  "shards": 2,
+  "buckets": 2,
+  "features": {
+    "base": "/feature/dir",
+    "query": ["qf1", "qf2"],
+    "shard": ["sf1", "sf2"],
+    "bucket": ["${/basename}:bf1"]
+  }
+}

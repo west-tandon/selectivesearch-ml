@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+
+import ossml.payoffs
+
+parser = argparse.ArgumentParser(description='Trains and predicts impacts', prog='ossml')
+commands = parser.add_subparsers(help='command', dest='command')
+commands.required = True
+
+parser_train = commands.add_parser('train')
+parser_train.add_argument('json', type=argparse.FileType('r'), help='file with feature description in JSON format')
+parser_train.add_argument('output', type=str)
+
+args = parser.parse_args()
+
+if args.command == 'train':
+    ossml.payoffs.run_train(json.loads(args.json.read()), args.output)
+
+elif args.command == 'predict':
+    pass

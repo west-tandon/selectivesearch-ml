@@ -1,27 +1,46 @@
 import numpy as np
 import pandas as pd
 import logging
+import math
 from sklearn.ensemble import RandomForestRegressor
 from ossml.utils import Dataset
 from sklearn.externals import joblib
+from sklearn.utils import shuffle
+from sklearn.metrics import mean_squared_error
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
 
 def feature_columns(dataset):
     return [f.name for f in dataset.query_features] + [f.name for f in dataset.shard_features] + ['BID']
 
 
 def train_payoffs(dataset, n_jobs=-1):
+
     clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
+
     logger.info("Loading dataset")
     training_data = dataset.load()
+
     X = np.array(training_data[feature_columns(dataset)])
     y = np.array(training_data['payoff'])
+
+    cut = math.floor(len(X) * 0.7)
+    X, y = shuffle(X, y)
+    X_train, y_train = X[:cut], y[:cut]
+    X_test, y_test = X[cut:], y[cut:]
+
     logger.info("Training model")
-    clf.fit(X, y)
+    clf.fit(X_train, y_train)
+
+    logger.info("Evaluating model")
+    y_pred = clf.predict(X_test)
+    err = mean_squared_error(y_test, y_pred)
+    logger.info("MSE = %f", err)
+
     logger.info("Success.")
-    return clf
+    return clf, err
 
 
 def predict_payoffs(dataset, model):
@@ -33,7 +52,7 @@ def predict_payoffs(dataset, model):
 def run_train(j, out):
     props = Dataset.parse_json(j)
     features = props['features']
-    model = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
+    model, err = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
     joblib.dump(model, out)
 
 

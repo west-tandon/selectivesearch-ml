@@ -1,20 +1,26 @@
 import numpy as np
 import pandas as pd
+import logging
 from sklearn.ensemble import RandomForestRegressor
 from ossml.utils import Dataset
 from sklearn.externals import joblib
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def feature_columns(dataset):
     return [f.name for f in dataset.query_features] + [f.name for f in dataset.shard_features] + ['BID']
 
 
-def train_payoffs(dataset):
-    clf = RandomForestRegressor()
+def train_payoffs(dataset, n_jobs=-1):
+    clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
+    logger.info("Loading dataset")
     training_data = dataset.load()
     X = np.array(training_data[feature_columns(dataset)])
     y = np.array(training_data['payoff'])
+    logger.info("Training model")
     clf.fit(X, y)
+    logger.info("Success.")
     return clf
 
 
@@ -34,13 +40,18 @@ def run_train(j, out):
 def run_predict(j, model_path):
     props = Dataset.parse_json(j)
     features = props['features']
+    logger.info("Loading model")
     model = joblib.load(model_path)
+    logger.info("Loading dataset")
     dataset = Dataset(features['query'], features['shard'], features['bucket'], props['buckets'])
+    logger.info("Making predictions")
     X, y = predict_payoffs(dataset, model)
     X['payoff'] = y
     basename = props['basename']
+    logger.info("Storing predictions")
     for shard, shard_group in X.groupby('SID'):
         for bucket, bucket_group in shard_group.groupby('BID'):
             with open("{0}#{1}#{2}.payoff".format(basename, shard, bucket), 'w') as f:
                 for idx, x in bucket_group.sort_values(by='QID').iterrows():
                     f.write(str(x['payoff']) + "\n")
+    logger.info("Success.")

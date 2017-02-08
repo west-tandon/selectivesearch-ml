@@ -5,13 +5,14 @@ from sklearn.ensemble import RandomForestRegressor
 from ossml.utils import Dataset
 from sklearn.externals import joblib
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def feature_columns(dataset):
     return [f.name for f in dataset.query_features] + [f.name for f in dataset.shard_features] + ['BID']
 
 
 def train_payoffs(dataset, n_jobs=-1):
-    logger = logging.getLogger('train impact')
     clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
     logger.info("Loading dataset")
     training_data = dataset.load()

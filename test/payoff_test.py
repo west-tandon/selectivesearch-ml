@@ -39,7 +39,7 @@ class PayoffsTest(UtilsTest):
             'payoff': [1, 4, 11, 44, 2, 5, 22, 55, 3, 6, 33, 66]
         })[['QID', 'qf1', 'qf2', 'SID', 'sf1', 'sf2', 'BID', 'payoff']]
         dataset.load = MagicMock(return_value=df)
-        model = pf.train_payoffs(dataset)
+        model, err = pf.train_payoffs(dataset)
 
         dataset.load = MagicMock(return_value=df[['QID', 'qf1', 'qf2', 'SID', 'sf1', 'sf2', 'BID']])
         predicted = pf.predict_payoffs(dataset, model)

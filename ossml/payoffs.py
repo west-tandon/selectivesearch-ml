@@ -10,7 +10,7 @@ def feature_columns(dataset):
 
 
 def train_payoffs(dataset):
-    clf = RandomForestRegressor()
+    clf = RandomForestRegressor(verbose=True, n_jobs=-1)
     training_data = dataset.load()
     X = np.array(training_data[feature_columns(dataset)])
     y = np.array(training_data['payoff'])

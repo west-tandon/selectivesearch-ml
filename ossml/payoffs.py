@@ -9,8 +9,8 @@ def feature_columns(dataset):
     return [f.name for f in dataset.query_features] + [f.name for f in dataset.shard_features] + ['BID']
 
 
-def train_payoffs(dataset):
-    clf = RandomForestRegressor(verbose=True, n_jobs=-1)
+def train_payoffs(dataset, n_jobs=-1):
+    clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
     training_data = dataset.load()
     X = np.array(training_data[feature_columns(dataset)])
     y = np.array(training_data['payoff'])

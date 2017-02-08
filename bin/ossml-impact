@@ -12,6 +12,7 @@ commands.required = True
 parser_train = commands.add_parser('train')
 parser_train.add_argument('json', type=argparse.FileType('r'), help='file with feature description in JSON format')
 parser_train.add_argument('output', type=str)
+parser_train.add_argument('--n-jobs', '-j', type=int)
 
 args = parser.parse_args()
 

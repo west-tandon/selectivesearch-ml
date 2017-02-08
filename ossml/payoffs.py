@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import logging
 from sklearn.ensemble import RandomForestRegressor
 from ossml.utils import Dataset
 from sklearn.externals import joblib
@@ -10,11 +11,15 @@ def feature_columns(dataset):
 
 
 def train_payoffs(dataset, n_jobs=-1):
+    logger = logging.getLogger('train impact')
     clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
+    logger.info("Loading dataset")
     training_data = dataset.load()
     X = np.array(training_data[feature_columns(dataset)])
     y = np.array(training_data['payoff'])
+    logger.info("Training model")
     clf.fit(X, y)
+    logger.info("Success.")
     return clf
 
 

@@ -40,13 +40,18 @@ def run_train(j, out):
 def run_predict(j, model_path):
     props = Dataset.parse_json(j)
     features = props['features']
+    logger.info("Loading model")
     model = joblib.load(model_path)
+    logger.info("Loading dataset")
     dataset = Dataset(features['query'], features['shard'], features['bucket'], props['buckets'])
+    logger.info("Making predictions")
     X, y = predict_payoffs(dataset, model)
     X['payoff'] = y
     basename = props['basename']
+    logger.info("Storing predictions")
     for shard, shard_group in X.groupby('SID'):
         for bucket, bucket_group in shard_group.groupby('BID'):
             with open("{0}#{1}#{2}.payoff".format(basename, shard, bucket), 'w') as f:
                 for idx, x in bucket_group.sort_values(by='QID').iterrows():
                     f.write(str(x['payoff']) + "\n")
+    logger.info("Success.")

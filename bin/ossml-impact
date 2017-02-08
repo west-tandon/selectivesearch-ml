@@ -14,10 +14,18 @@ parser_train.add_argument('json', type=argparse.FileType('r'), help='file with f
 parser_train.add_argument('output', type=str)
 parser_train.add_argument('--n-jobs', '-j', type=int)
 
+parser_predict = commands.add_parser('predict')
+parser_train.add_argument('json', type=argparse.FileType('r'), help='file with feature description in JSON format')
+parser_train.add_argument('model', type=str)
+parser_train.add_argument('--n-jobs', '-j', type=int)
+
 args = parser.parse_args()
 
 if args.command == 'train':
     ossml.payoffs.run_train(json.loads(args.json.read()), args.output)
+
+if args.command == 'predict':
+    ossml.payoffs.run_predict(json.loads(args.json.read()), args.model)
 
 elif args.command == 'predict':
     pass

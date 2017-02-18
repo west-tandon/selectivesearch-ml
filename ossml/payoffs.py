@@ -23,7 +23,8 @@ def train_payoffs(dataset, n_jobs=-1):
     logger.info("Loading dataset")
     training_data = dataset.load()
 
-    X = np.array(training_data[feature_columns(dataset)])
+    features = feature_columns(dataset)
+    X = np.array(training_data[features])
     y = np.array(training_data['payoff'])
 
     cut = math.floor(len(X) * 0.7)
@@ -38,6 +39,9 @@ def train_payoffs(dataset, n_jobs=-1):
     y_pred = clf.predict(X_test)
     err = mean_squared_error(y_test, y_pred)
     logger.info("MSE = %f", err)
+
+    logger.info("Feature scores: %s",
+                str(sorted(zip(map(lambda x: round(x, 4), clf.feature_importances_), features), reverse=True)))
 
     logger.info("Success.")
     return clf, err

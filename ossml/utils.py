@@ -122,7 +122,7 @@ class Dataset:
         """Resolves paths to features"""
         parsed = copy.deepcopy(j)
         num_shards = parsed['shards']
-        num_buckets = parsed['buckets']
+        num_buckets = parsed['buckets'] if 'buckets' in parsed else None
         parsed[features_field]['query'] = [QueryFeature(*Dataset.parse_path(parsed, path, features_field))
                                            for path in parsed[features_field]['query']]
         parsed[features_field]['shard'] = [ShardFeature(*Dataset.parse_path(parsed, path, features_field), num_shards)

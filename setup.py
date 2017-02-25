@@ -6,7 +6,7 @@ setup(name='selectivesearch-ml',
       download_url='selectivesearch-ml',
       license='MIT',
       packages=['ossml'],
-      scripts=['bin/ossml-impact'],
+      scripts=['bin/ossml-impact', 'bin/ossml-cost'],
       install_requires=[
           'argparse',
           'scikit-learn',

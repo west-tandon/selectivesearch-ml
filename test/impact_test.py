@@ -1,18 +1,17 @@
 import os
 import shutil
 import tempfile
-from sklearn.externals import joblib
 from unittest.mock import MagicMock
 
 import pandas as pd
 
-import ossml.payoffs as pf
+import ossml.impacts as impacts
 from ossml.utils import BucketFeature
 from ossml.utils import Dataset
 from test.utils_test import UtilsTest
 
 
-class PayoffsTest(UtilsTest):
+class ImpactsTest(UtilsTest):
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -39,17 +38,17 @@ class PayoffsTest(UtilsTest):
             'payoff': [1, 4, 11, 44, 2, 5, 22, 55, 3, 6, 33, 66]
         })[['QID', 'qf1', 'qf2', 'SID', 'sf1', 'sf2', 'BID', 'payoff']]
         dataset.load = MagicMock(return_value=df)
-        model, err = pf.train_payoffs(dataset)
+        model, err = impacts.train_payoffs(dataset)
 
         dataset.load = MagicMock(return_value=df[['QID', 'qf1', 'qf2', 'SID', 'sf1', 'sf2', 'BID']])
-        predicted = pf.predict_payoffs(dataset, model)
+        impacts.predict_payoffs(dataset, model)
 
     def test_run_train_and_run_predict(self):
         j = {
             "basename": os.path.join(self.test_dir, "basename"),
             "shards": 2,
             "buckets": 2,
-            "features": {
+            "impact_features": {
                 "base": self.feature_path(),
                 "query": [f.name for f in [self.qf1(), self.qf2()]],
                 "shard": [f.name for f in [self.sf1(), self.sf2()]],
@@ -57,10 +56,10 @@ class PayoffsTest(UtilsTest):
             }
         }
         model_path = os.path.join(self.test_dir, "model")
-        pf.run_train(j, model_path)
+        impacts.run_train(j, model_path)
 
-        j['features']['bucket'] = []
-        pf.run_predict(j, model_path)
+        j['impact_features']['bucket'] = []
+        impacts.run_predict(j, model_path)
 
         for shard in range(2):
             for bucket in range(2):

@@ -52,6 +52,14 @@ class UtilsTest(unittest.TestCase):
             f.write('110\n220\n330\n')
         return feature
 
+    def cost(self):
+        feature = ShardFeature("cost", os.path.join(self.test_dir, self.feature_path()), 2)
+        with open("{0}#{1}.{2}".format(feature.path, 0, feature.name), 'w') as f:
+            f.write('10\n20\n30\n')
+        with open("{0}#{1}.{2}".format(feature.path, 1, feature.name), 'w') as f:
+            f.write('110\n220\n330\n')
+        return feature
+
     def bf1(self):
         feature = BucketFeature("payoff", os.path.join(self.test_dir, self.feature_path()), 2, 2)
         with open("{0}#{1}#{2}.{3}".format(feature.path, 0, 0, feature.name), 'w') as f:
@@ -162,19 +170,19 @@ class UtilsTest(unittest.TestCase):
           "basename": "a",
           "shards": 2,
           "buckets": 2,
-          "features": {
+          "some_features": {
             "base": "b",
-            "query": ["${/basename}${/features/base}:qf1", "qf2"],
+            "query": ["${/basename}${/some_features/base}:qf1", "qf2"],
             "shard": ["/c:sf1", "sf2"],
             "bucket": ["${/basename}:bf1"]
           }
         }''')
-        actual = Dataset.parse_json(j)
+        actual = Dataset.parse_json(j, features_field='some_features')
         expected = {
           "basename": "a",
           "shards": 2,
           "buckets": 2,
-          "features": {
+          "some_features": {
             "base": "b",
             "query": [QueryFeature("qf1", "ab"), QueryFeature("qf2", "b")],
             "shard": [ShardFeature("sf1", "/c", 2), ShardFeature("sf2", "b", 2)],

@@ -2,10 +2,15 @@
   "basename": "/basename",
   "shards": 2,
   "buckets": 2,
-  "features": {
+  "impact_features": {
     "base": "/feature/dir",
     "query": ["qf1", "qf2"],
     "shard": ["sf1", "sf2"],
     "bucket": ["${/basename}:bf1"]
+  },
+  "cost_features": {
+    "base": "/feature/dir",
+    "query": ["qf1", "qf2"],
+    "shard": ["sf1", "sf2"],
   }
 }

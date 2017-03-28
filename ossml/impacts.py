@@ -16,14 +16,15 @@ def feature_columns(dataset):
     return [f.name for f in dataset.query_features] + [f.name for f in dataset.shard_features] + ['BID']
 
 
-def train_payoffs(dataset, n_jobs=-1):
+def train_payoffs(dataset, n_jobs=-1, n_estimators=20):
 
-    clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs)
+    clf = RandomForestRegressor(verbose=True, n_jobs=n_jobs, n_estimators=n_estimators)
 
     logger.info("Loading dataset")
     training_data = dataset.load()
 
-    X = np.array(training_data[feature_columns(dataset)])
+    features = feature_columns(dataset)
+    X = np.array(training_data[features])
     y = np.array(training_data['payoff'])
 
     cut = math.floor(len(X) * 0.7)
@@ -39,6 +40,9 @@ def train_payoffs(dataset, n_jobs=-1):
     err = mean_squared_error(y_test, y_pred)
     logger.info("MSE = %f", err)
 
+    logger.info("Feature scores: %s",
+                str(sorted(zip(map(lambda x: round(x, 4), clf.feature_importances_), features), reverse=True)))
+
     logger.info("Success.")
     return clf, err
 
@@ -50,15 +54,15 @@ def predict_payoffs(dataset, model):
 
 
 def run_train(j, out):
-    props = Dataset.parse_json(j)
-    features = props['features']
+    props = Dataset.parse_json(j, 'impact_features')
+    features = props['impact_features']
     model, err = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
     joblib.dump(model, out)
 
 
 def run_predict(j, model_path):
-    props = Dataset.parse_json(j)
-    features = props['features']
+    props = Dataset.parse_json(j, 'impact_features')
+    features = props['impact_features']
     logger.info("Loading model")
     model = joblib.load(model_path)
     logger.info("Loading dataset")

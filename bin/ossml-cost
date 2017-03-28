@@ -3,9 +3,9 @@
 import argparse
 import json
 
-import ossml.impacts
+import ossml.costs
 
-parser = argparse.ArgumentParser(description='Trains and predicts impacts', prog='ossml')
+parser = argparse.ArgumentParser(description='Trains and predicts costs', prog='ossml')
 commands = parser.add_subparsers(help='command', dest='command')
 commands.required = True
 
@@ -22,7 +22,7 @@ parser_predict.add_argument('--n-jobs', '-j', type=int)
 args = parser.parse_args()
 
 if args.command == 'train':
-    ossml.impacts.run_train(json.loads(args.json.read()), args.output)
+    ossml.costs.run_train(json.loads(args.json.read()), args.output)
 
 elif args.command == 'predict':
-    ossml.impacts.run_predict(json.loads(args.json.read()), args.model)
+    ossml.costs.run_predict(json.loads(args.json.read()), args.model)

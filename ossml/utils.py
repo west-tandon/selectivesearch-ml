@@ -99,7 +99,7 @@ class Dataset:
         return j
 
     @staticmethod
-    def parse_path(j, path):
+    def parse_path(j, path, features_field):
         i = path.find(':')
         if i > -1:
             p = path[:i]
@@ -114,24 +114,27 @@ class Dataset:
             s.append(p[end:])
             p = ''.join(s)
         else:
-            p = j['features']['base']
+            p = j[features_field]['base']
         return path[i + 1:], p
 
     @staticmethod
-    def parse_json(j):
+    def parse_json(j, features_field='features'):
         """Resolves paths to features"""
         parsed = copy.deepcopy(j)
         num_shards = parsed['shards']
+        if 'buckets' not in parsed:
+            parsed['buckets'] = None
         num_buckets = parsed['buckets']
-        parsed['features']['query'] = [QueryFeature(*Dataset.parse_path(parsed, path))
-                                       for path in parsed['features']['query']]
-        parsed['features']['shard'] = [ShardFeature(*Dataset.parse_path(parsed, path), num_shards)
-                                       for path in parsed['features']['shard']]
-        if 'bucket' in parsed['features']:
-            parsed['features']['bucket'] = [BucketFeature(*Dataset.parse_path(parsed, path), num_shards, num_buckets)
-                                            for path in parsed['features']['bucket']]
+        parsed[features_field]['query'] = [QueryFeature(*Dataset.parse_path(parsed, path, features_field))
+                                           for path in parsed[features_field]['query']]
+        parsed[features_field]['shard'] = [ShardFeature(*Dataset.parse_path(parsed, path, features_field), num_shards)
+                                           for path in parsed[features_field]['shard']]
+        if 'bucket' in parsed[features_field]:
+            parsed[features_field]['bucket'] =\
+                [BucketFeature(*Dataset.parse_path(parsed, path, features_field), num_shards, num_buckets)
+                 for path in parsed[features_field]['bucket']]
         else:
-            parsed['features']['bucket'] = None
+            parsed[features_field]['bucket'] = None
         return parsed
 
     def __init__(self, query_features, shard_features, bucket_features, num_buckets):

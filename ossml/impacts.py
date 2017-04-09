@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import logging
 import math
+import fastparquet
+
 from sklearn.ensemble import RandomForestRegressor
 from ossml.utils import Dataset
 from sklearn.externals import joblib
@@ -54,10 +56,60 @@ def predict_payoffs(dataset, model):
 
 
 def run_train(j, out):
-    props = Dataset.parse_json(j, 'impact_features')
-    features = props['impact_features']
-    model, err = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
-    joblib.dump(model, out)
+    features = j['impact_features']
+    basename = j['basename']
+
+    logger.info("Loading data")
+
+    query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(basename))\
+        .to_pandas(columns=['query'] + features['query'])
+    taily_features = fastparquet.ParquetFile('{}.taily'.format(basename))\
+        .to_pandas(columns=['query', 'shard'] + features['taily'])
+    redde_features = fastparquet.ParquetFile('{}.redde'.format(basename))\
+        .to_pandas(columns=['query', 'shard'] + features['redde'])
+    ranks_features = fastparquet.ParquetFile('{}.ranks'.format(basename))\
+        .to_pandas(columns=['query', 'shard'] + features['ranks'])
+    impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard))
+                         for shard in basename['shards']])
+
+    logger.info("Joining data")
+
+    data = query_features\
+        .join(taily_features, on='query')\
+        .join(redde_features, on=['query', 'shard'])\
+        .join(ranks_features, on=['query', 'shard'])\
+        .join(impacts, on=['query', 'shard', 'bucket'])
+
+    logger.info("Pre-processing data")
+
+    clf = RandomForestRegressor(verbose=True, n_jobs=-1, n_estimators=20)
+    feature_names = query_features + taily_features + redde_features + ranks_features + ['bucket']
+    features = np.array(data[feature_names])
+    labels = np.array(data['impact'])
+
+    cut = math.floor(len(features) * 0.7)
+    features, labels = shuffle(features, labels)
+    features_train, labels_train = features[:cut], labels[:cut]
+    features_test, labels_test = features[cut:], labels[cut:]
+
+    logger.info("Training model")
+    clf.fit(features_train, labels_train)
+
+    logger.info("Evaluating model")
+    labels_pred = clf.predict(features_test)
+    err = mean_squared_error(features_test, labels_pred)
+    logger.info("MSE = %f", err)
+
+    logger.info("Feature scores: %s",
+                str(sorted(zip(map(lambda x: round(x, 4), clf.feature_importances_), feature_names), reverse=True)))
+
+    logger.info("Success.")
+    return clf, err
+
+    # props = Dataset.parse_json(j, 'impact_features')
+    # features = props['impact_features']
+    # model, err = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
+    # joblib.dump(model, out)
 
 
 def run_predict(j, model_path):

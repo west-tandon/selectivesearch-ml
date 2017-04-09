@@ -11,5 +11,6 @@ setup(name='selectivesearch-ml',
           'argparse',
           'scikit-learn',
           'scipy',
-          'pandas'
+          'pandas',
+          'fastparquet'
       ])

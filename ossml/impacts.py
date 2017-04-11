@@ -27,8 +27,8 @@ def run_train(j, out):
 
     logger.info("Loading data")
 
-    query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
-        .to_pandas(columns=['query'] + features['query'])
+    #query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
+    #    .to_pandas(columns=['query'] + features['query'])
     taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename))\
         .to_pandas(columns=['query', 'shard'] + features['taily'])
     redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename))\
@@ -40,8 +40,7 @@ def run_train(j, out):
 
     logger.info("Joining data")
 
-    data = query_features\
-        .join(taily_features, on='query')\
+    data = taily_features\
         .join(redde_features, on=['query', 'shard'])\
         .join(ranks_features, on=['query', 'shard'])\
         .join(impacts, on=['query', 'shard', 'bucket'])

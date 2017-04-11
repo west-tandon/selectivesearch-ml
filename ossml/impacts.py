@@ -83,7 +83,7 @@ def run_train(j, out):
     logger.info("Pre-processing data")
 
     clf = RandomForestRegressor(verbose=True, n_jobs=-1, n_estimators=20)
-    feature_names = query_features + taily_features + redde_features + ranks_features + ['bucket']
+    feature_names = features['query'] + features['taily'] + features['redde'] + features['ranks'] + ['bucket']
     features = np.array(data[feature_names])
     labels = np.array(data['impact'])
 
@@ -104,7 +104,7 @@ def run_train(j, out):
                 str(sorted(zip(map(lambda x: round(x, 4), clf.feature_importances_), feature_names), reverse=True)))
 
     logger.info("Success.")
-    return clf, err
+    joblib.dump(clf, out)
 
     # props = Dataset.parse_json(j, 'impact_features')
     # features = props['impact_features']

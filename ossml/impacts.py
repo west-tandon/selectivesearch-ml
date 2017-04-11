@@ -58,16 +58,17 @@ def predict_payoffs(dataset, model):
 def run_train(j, out):
     features = j['impact_features']
     basename = j['basename']
+    features_basename = features['basename']
 
     logger.info("Loading data")
 
-    query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(basename))\
+    query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
         .to_pandas(columns=['query'] + features['query'])
-    taily_features = fastparquet.ParquetFile('{}.taily'.format(basename))\
+    taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename))\
         .to_pandas(columns=['query', 'shard'] + features['taily'])
-    redde_features = fastparquet.ParquetFile('{}.redde'.format(basename))\
+    redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename))\
         .to_pandas(columns=['query', 'shard'] + features['redde'])
-    ranks_features = fastparquet.ParquetFile('{}.ranks'.format(basename))\
+    ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename))\
         .to_pandas(columns=['query', 'shard'] + features['ranks'])
     impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard))
                          for shard in basename['shards']])

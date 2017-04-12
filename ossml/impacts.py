@@ -111,6 +111,7 @@ def run_predict(j, model_path):
     for shard, shard_group in data.groupby('shard'):
         write('{}#{}.impacts'.format(basename, shard),
               shard_group[['query', 'bucket', 'impact']].sort_values(by=['query', 'bucket']),
-              compression='SNAPPY')
+              compression='SNAPPY',
+              write_index=False)
 
     logger.info("Success.")

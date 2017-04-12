@@ -90,7 +90,7 @@ def run_predict(j, model_path):
     buckets = pd.DataFrame({
         'bucket': range(j['buckets']),
         'key': 1
-    }, dtype={'bucket': int})
+    }, dtype=int)
 
     logger.info("Joining data")
 

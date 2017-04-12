@@ -35,7 +35,7 @@ def run_train(j, out):
         .to_pandas(columns=['query', 'shard'] + features['redde'])
     ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename))\
         .to_pandas(columns=['query', 'shard'] + features['ranks'])
-    impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard))
+    impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard)).to_pandas()
                          for shard in range(j['shards'])])
 
     logger.info("Joining data")

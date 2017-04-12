@@ -31,22 +31,25 @@ def run_train(j, out):
     #query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
     #    .to_pandas(columns=['query'] + features['query'])
     taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename))\
-        .to_pandas(columns=index + features['taily']).set_index(index)
+        .to_pandas(columns=index + features['taily'])
     redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename))\
-        .to_pandas(columns=index + features['redde']).set_index(index)
+        .to_pandas(columns=index + features['redde'])
     ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename))\
-        .to_pandas(columns=index + features['ranks']).set_index(index)
+        .to_pandas(columns=index + features['ranks'])
     impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard)).to_pandas()
-                         for shard in range(j['shards'])]).set_index(index)
+                         for shard in range(j['shards'])])
 
     logger.info("Joining data")
-    logger.info("{}".format(taily_features))
-    logger.info("{}".format(redde_features))
 
-    data = taily_features\
-        .join(redde_features, on=index)\
-        .join(ranks_features, on=index)\
-        .join(impacts, on=index)
+    data = pd.merge(
+        pd.merge(
+            pd.merge(taily_features, redde_features, on=index),
+            ranks_features,
+            on=index
+        ),
+        impacts,
+        on=index
+    )
 
     logger.info("Pre-processing data")
 

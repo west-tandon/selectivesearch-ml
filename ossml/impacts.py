@@ -4,6 +4,7 @@ import logging
 import math
 import fastparquet
 
+from fastparquet import write
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.externals import joblib
 from sklearn.utils import shuffle
@@ -11,13 +12,6 @@ from sklearn.metrics import mean_squared_error
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-
-def predict_payoffs(dataset, model):
-    pass
-    # test_data = dataset.load()
-    # X = np.array(test_data[feature_columns(dataset)])
-    # return test_data, pd.DataFrame(model.predict(X))
 
 
 def run_train(j, out):
@@ -28,8 +22,7 @@ def run_train(j, out):
     logger.info("Loading data")
 
     index = ['query', 'shard']
-    #query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
-    #    .to_pandas(columns=['query'] + features['query'])
+
     taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename))\
         .to_pandas(columns=index + features['taily'])
     redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename))\
@@ -77,28 +70,59 @@ def run_train(j, out):
     logger.info("Success.")
     joblib.dump(clf, out)
 
-    # props = Dataset.parse_json(j, 'impact_features')
-    # features = props['impact_features']
-    # model, err = train_payoffs(Dataset(features['query'], features['shard'], features['bucket'], props['buckets']))
-    # joblib.dump(model, out)
-
 
 def run_predict(j, model_path):
-    pass
+    features = j['impact_features']
+    basename = j['basename']
+    features_basename = features['basename']
+
+    logger.info("Loading data")
+
+    index = ['query', 'shard']
+
+    taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename)) \
+        .to_pandas(columns=index + features['taily'])
+    redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename)) \
+        .to_pandas(columns=index + features['redde'])
+    ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename)) \
+        .to_pandas(columns=index + features['ranks'])
+
+    buckets = pd.DataFrame({
+        'bucket': range(j['buckets']),
+        'key': 1
+    })
+
+    logger.info("Joining data")
+
+    features_data = pd.merge(
+        pd.merge(taily_features, redde_features, on=index),
+        ranks_features,
+        on=index
+    )
+    features_data['key'] = 1
+    data = pd.merge(features_data, buckets, on='key')
+    feature_names = features['taily'] + features['redde'] + features['ranks'] + ['bucket']
+
+    model = joblib.load(model_path)
+    predictions = pd.DataFrame(model.predict(np.array(data[feature_names])))
+    data['impact'] = predictions
+
     # props = Dataset.parse_json(j, 'impact_features')
     # features = props['impact_features']
     # logger.info("Loading model")
-    # model = joblib.load(model_path)
     # logger.info("Loading dataset")
     # dataset = Dataset(features['query'], features['shard'], features['bucket'], props['buckets'])
     # logger.info("Making predictions")
     # X, y = predict_payoffs(dataset, model)
     # X['payoff'] = y
     # basename = props['basename']
-    # logger.info("Storing predictions")
-    # for shard, shard_group in X.groupby('SID'):
+    logger.info("Storing predictions")
+    for shard, shard_group in data.groupby('shard'):
+        write('{}#{}.impacts'.format(basename, shard),
+              shard_group.sort_values(by=['query', 'bucket']),
+              compression='SNAPPY')
     #     for bucket, bucket_group in shard_group.groupby('BID'):
     #         with open("{0}#{1}#{2}.payoff".format(basename, shard, bucket), 'w') as f:
     #             for idx, x in bucket_group.sort_values(by='QID').iterrows():
     #                 f.write(str(x['payoff']) + "\n")
-    # logger.info("Success.")
+    logger.info("Success.")

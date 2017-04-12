@@ -68,7 +68,7 @@ def run_train(j, out):
 
     logger.info("Evaluating model")
     labels_pred = clf.predict(features_test)
-    err = mean_squared_error(features_test, labels_pred)
+    err = mean_squared_error(labels_test, labels_pred)
     logger.info("MSE = %f", err)
 
     logger.info("Feature scores: %s",

@@ -27,23 +27,24 @@ def run_train(j, out):
 
     logger.info("Loading data")
 
+    index = ['query', 'shard']
     #query_features = fastparquet.ParquetFile('{}.queryfeatures'.format(features_basename))\
     #    .to_pandas(columns=['query'] + features['query'])
     taily_features = fastparquet.ParquetFile('{}.taily'.format(features_basename))\
-        .to_pandas(columns=['query', 'shard'] + features['taily'])
+        .to_pandas(columns=index + features['taily']).set_index(index)
     redde_features = fastparquet.ParquetFile('{}.redde'.format(features_basename))\
-        .to_pandas(columns=['query', 'shard'] + features['redde'])
+        .to_pandas(columns=index + features['redde']).set_index(index)
     ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename))\
-        .to_pandas(columns=['query', 'shard'] + features['ranks'])
+        .to_pandas(columns=index + features['ranks']).set_index(index)
     impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard)).to_pandas()
-                         for shard in range(j['shards'])])
+                         for shard in range(j['shards'])]).set_index(index)
 
     logger.info("Joining data")
 
     data = taily_features\
-        .join(redde_features, on=['query', 'shard'])\
-        .join(ranks_features, on=['query', 'shard'])\
-        .join(impacts, on=['query', 'shard', 'bucket'])
+        .join(redde_features, on=index)\
+        .join(ranks_features, on=index)\
+        .join(impacts, on=index)
 
     logger.info("Pre-processing data")
 

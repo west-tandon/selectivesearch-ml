@@ -54,7 +54,7 @@ def run_train(j, out):
     logger.info("Pre-processing data")
 
     clf = RandomForestRegressor(verbose=True, n_jobs=-1, n_estimators=20)
-    feature_names = features['query'] + features['taily'] + features['redde'] + features['ranks'] + ['bucket']
+    feature_names = features['taily'] + features['redde'] + features['ranks'] + ['bucket']
     features = np.array(data[feature_names])
     labels = np.array(data['impact'])
 

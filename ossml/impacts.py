@@ -90,7 +90,7 @@ def run_predict(j, model_path):
     buckets = pd.DataFrame({
         'bucket': range(j['buckets']),
         'key': 1
-    }, dtype=int)
+    }, dtype=np.int32)
 
     logger.info("Joining data")
 
@@ -108,7 +108,6 @@ def run_predict(j, model_path):
     data['impact'] = predictions
 
     logger.info("Storing predictions")
-    logger.info("{}".format(data.dtypes))
     for shard, shard_group in data.groupby('shard'):
         write('{}#{}.impacts'.format(basename, shard),
               shard_group[['query', 'bucket', 'impact']].sort_values(by=['query', 'bucket']),

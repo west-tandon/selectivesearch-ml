@@ -40,6 +40,8 @@ def run_train(j, out):
                          for shard in range(j['shards'])]).set_index(index)
 
     logger.info("Joining data")
+    logger.info("{}".format(taily_features))
+    logger.info("{}".format(redde_features))
 
     data = taily_features\
         .join(redde_features, on=index)\

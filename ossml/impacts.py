@@ -107,22 +107,10 @@ def run_predict(j, model_path):
     predictions = pd.DataFrame(model.predict(np.array(data[feature_names])))
     data['impact'] = predictions
 
-    # props = Dataset.parse_json(j, 'impact_features')
-    # features = props['impact_features']
-    # logger.info("Loading model")
-    # logger.info("Loading dataset")
-    # dataset = Dataset(features['query'], features['shard'], features['bucket'], props['buckets'])
-    # logger.info("Making predictions")
-    # X, y = predict_payoffs(dataset, model)
-    # X['payoff'] = y
-    # basename = props['basename']
     logger.info("Storing predictions")
     for shard, shard_group in data.groupby('shard'):
         write('{}#{}.impacts'.format(basename, shard),
-              shard_group.sort_values(by=['query', 'bucket']),
+              shard_group[['query', 'bucket', 'impact']].sort_values(by=['query', 'bucket']),
               compression='SNAPPY')
-    #     for bucket, bucket_group in shard_group.groupby('BID'):
-    #         with open("{0}#{1}#{2}.payoff".format(basename, shard, bucket), 'w') as f:
-    #             for idx, x in bucket_group.sort_values(by='QID').iterrows():
-    #                 f.write(str(x['payoff']) + "\n")
+
     logger.info("Success.")

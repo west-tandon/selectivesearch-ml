@@ -110,7 +110,7 @@ def run_predict(j, model_path):
     logger.info("Storing predictions")
     for shard, shard_group in data.groupby('shard'):
         write('{}#{}.impacts'.format(basename, shard),
-              shard_group[['query', 'bucket', 'impact']].sort_values(by=['query', 'bucket']),
+              shard_group[['query', 'shard', 'bucket', 'impact']].sort_values(by=['query', 'bucket']),
               compression='SNAPPY',
               write_index=False)
 

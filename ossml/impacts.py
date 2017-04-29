@@ -31,7 +31,7 @@ def run_train(j, out):
         .to_pandas(columns=index + features['ranks'])
     impacts = pd.concat([fastparquet.ParquetFile('{}#{}.impacts'.format(basename, shard)).to_pandas()
                          for shard in range(j['shards'])])
-    bucket_ranks = fastparquet.ParquetFile('{}.bucketrank-{}'.format(basename, j['buckets']))
+    bucket_ranks = fastparquet.ParquetFile('{}.bucketrank-{}'.format(features_basename, j['buckets']))
 
     logger.info("Joining data")
 
@@ -88,7 +88,7 @@ def run_predict(j, model_path):
         .to_pandas(columns=index + features['redde'])
     ranks_features = fastparquet.ParquetFile('{}.ranks'.format(features_basename)) \
         .to_pandas(columns=index + features['ranks'])
-    bucket_ranks = fastparquet.ParquetFile('{}.bucketrank-{}'.format(basename, j['buckets']))
+    bucket_ranks = fastparquet.ParquetFile('{}.bucketrank-{}'.format(features_basename, j['buckets']))
 
     logger.info("Joining data")
 

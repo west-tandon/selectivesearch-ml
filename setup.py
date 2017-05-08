@@ -12,5 +12,5 @@ setup(name='selectivesearch-ml',
           'scikit-learn',
           'scipy',
           'pandas',
-          'fastparuqet'
+          'fastparquet'
       ])

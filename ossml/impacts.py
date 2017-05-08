@@ -49,7 +49,7 @@ def run_train(j, out):
     logger.info("Pre-processing data")
 
     clf = RandomForestRegressor(verbose=True, n_jobs=-1, n_estimators=20)
-    feature_names = features['taily'] + features['redde'] + features['ranks'] + ['bucketrank']
+    feature_names = features['taily'] + features['redde'] + features['ranks'] + features['bucket']
     features = np.array(data[feature_names])
     labels = np.array(data['impact'])
 
@@ -98,7 +98,7 @@ def run_predict(j, model_path):
         on=index
     )
     data = pd.merge(features_data, bucket_ranks, on=['shard'])
-    feature_names = features['taily'] + features['redde'] + features['ranks'] + ['bucketrank']
+    feature_names = features['taily'] + features['redde'] + features['ranks'] + features['bucket']
 
     model = joblib.load(model_path)
     predictions = pd.DataFrame(model.predict(np.array(data[feature_names])))
